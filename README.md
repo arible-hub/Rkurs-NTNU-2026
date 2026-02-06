@@ -1,4 +1,3 @@
-# Rkurs-NTNU-2026
 # R-kurs ved NTNU (2026)
 
 Dette repositoriet inneholder alle filene som brukes i R-kurset. Det er kun fire filer i dette kurset:

@@ -28,7 +28,3 @@ For å jobbe med filene trenger du:
 
 - **R** (versjon 4.2 eller nyere)  
 - **RStudio**
-- **tidyverse**  
-  Installeres med:  
-  ```r
-  install.packages("tidyverse")

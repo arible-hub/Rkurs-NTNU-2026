@@ -1,7 +1,6 @@
 # Laster nødvendige pakker
 library(tidyverse)      # Generell pakke som inneholder mange ulike funksjoner
 library(haven)          # lese .dta-filer
-library(labelled)       # variabel- og verdilabels
 library(summarytools)   # tabellfunksjoner
 library(jtools)         # regresjonstabeller
 library(sjPlot)         # plotting av samspillsmodeller
@@ -54,11 +53,11 @@ model2 <- lm(trstprl ~ eduyrs + kvinne + agea, data = ess)
 summ(model2)
 
 # Dummysett: referanskategori (dplyr-faktor) -----------------------------------
-freq(ess$domicil2)
-model3 <- lm(trstprl ~ eduyrs + kvinne + agea + domicil2, data = ess)
+freq(ess$domicil)
+model3 <- lm(trstprl ~ eduyrs + kvinne + agea + domicil, data = ess)
 summ(model3)
 
-ess$bosted <- as.factor(ess$domicil2)
+ess$bosted <- as.factor(ess$domicil)
 model4 <- lm(trstprl ~ eduyrs + kvinne + agea + bosted, data = ess)
 summ(model4)
 

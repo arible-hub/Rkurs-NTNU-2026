@@ -9,28 +9,25 @@ library(margins)        # margins() tilsvarende Stata
 
 # Sette arbeidskatalog ---------------------------------------------------------
 # Mac-eksempel:
-# setwd("/Volumes/arible/Undervisning/SOS3003V2026/DATA")
+# setwd("/Volumes/arible/Undervisning/SOS2900")
 # Windows-eksempel:
-setwd("M:/Undervisning/SOS3003V2026/DATA")
+# setwd("M:/Undervisning/SOS2900")
 
 # Import av data ---------------------------------------------------------------
 ess <- read_dta("ESS11e04_1-subset.dta")
 
 # Deskriptiv statistikk --------------------------------------------------------
-summary(ess$freehms)
 descr(ess$freehms)
+summary(ess$freehms)
 table(ess$freehms)
 freq(ess$freehms)
 hist(ess$agea, breaks = 30)
-# Bostedvariabel og fjerning av missing ----------------------------------------
-freq(ess$domicil)
-ess$domicil2 <- zap_missing(ess$domicil)
-freq(ess$domicil2)
 
 # Omkoding av kjønn til dummy --------------------------------------------------
 freq(ess$gndr)
-
 ess$kvinne <- car::recode(ess$gndr, "1=0; 2=1; else=NA")
+freq(ess$kvinne)
+
 # Av og til vil du få en advarsel om at as.numeric() burde brukes først. Slik:
 ess$kvinne <- car::recode(as.numeric(ess$gndr), "1=0; 2=1; else=NA")
 freq(ess$kvinne)
@@ -42,6 +39,8 @@ ess$frp <- car::recode(as.numeric(ess$prtvtcno), "1=0; 2=0; 3=0; 4=0; 5=0;
                        6=0; 7=0; 8=1; 9=0; 10=0; 11=0; else=NA")
 
 freq(ess$frp)
+
+# Krysstabell ------------------------------------------------------------------
 ctable(ess$polintr, ess$frp, prop="c", useNA="no")
 
 # Lineær regresjon -------------------------------------------------------------
@@ -83,23 +82,14 @@ ess$redusere <- car::recode(as.numeric(ess$gincdif), "1=5; 2=4; 3=3; 4=2;
 freq(ess$redusere)
 
 # Samspillsgraf (grafisk fremstilling av samspill) -----------------------------
-model7 <- lm(gincdif ~ kvinne + hinctnta, data = ess)
+model7 <- lm(redusere ~ kvinne + hinctnta + kvinne:hinctnta, data = ess)
 summ(model7, digits=3)
-model8 <- lm(redusere ~ kvinne + hinctnta, data = ess)
-summ(model8, digits=3)
-
-model9 <- lm(redusere ~ kvinne + hinctnta + kvinne:hinctnta, data = ess)
-summ(model9, digits=3)
 
 # Alternativt:
-model9 <- lm(redusere ~ kvinne * hinctnta, data = ess)
-summ(model9, digits=3)
+model8 <- lm(redusere ~ kvinne * hinctnta, data = ess)
+summ(model8, digits=3)
 
-plot_model(model9, type = "int")
-
-# Variabel for logistisk regresjon ---------------------------------------------
-ess <- ess %>% mutate(
-  innvandringsvennlig = ifelse(imwbcnt == 88, NA, imwbcnt))
+plot_model(model8, type = "int")
 
 # Bivariat logistisk regresjon -------------------------------------------------
 log1 <- glm(frp ~ eduyrs, data = ess, family = binomial)

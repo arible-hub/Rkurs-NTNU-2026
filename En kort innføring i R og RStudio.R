@@ -10,6 +10,7 @@ library(car)
 library(psych)
 library(jtools)
 library(sjPlot)
+library(margins)
 # Hvis du mangler noen av pakkene, så må du installere dem
 
 # Hvis du har PC: Les inn datasettet du har hentet fra ESS fra din PC-katalog
@@ -29,28 +30,32 @@ descr(ess$agea)
 
 
 # Klargjøring av data
+# Endrer missing (NA) i variabelen happy til medianverdien 8.
 freq(ess$happy)
 ess$happy <- recode(ess$happy, "NA=8")
 freq(ess$happy)
 
 # Tabell med variabelen bosted (domicil)
 freq(ess$domicil)
-# Denne kan kodes om til den nye dummyen by, der 1=by og 0=landsbygd
-ess$by <- recode(ess$domicil, "1:3=1; 4:5=0")
-fre(ess$by)
+# Denne kan kodes om til den nye dummyen bykommune, der 1=by og 0=landsbygd
+ess$bykommune <- recode(ess$domicil, "1:3=1; 4:5=0")
+freq(ess$bykommune)
+# Her sere dere at merkelappene henger igjen i variabelen med tomme verdier
+# Dette unngår dere ved å legge in as.numeric i rekodingen
+ess$bykommune <- recode(as.numeric(ess$domicil), "1:3=1; 4:5=0")
+freq(ess$bykommune)
 
 # Tabell med kjønnsvariabelen gndr
 freq(ess$gndr)
 # Denne variabelen kan også kodes om til dummyen kvinne
-ess$kvinne <- recode(ess$gndr, "1=0; 2=1")
+ess$kvinne <- recode(as.numeric(ess$gndr), "1=0; 2=1")
 freq(ess$kvinne)
-fre(ess$kvinne)
 
 # Tabell med partibarometer
 freq(ess$prtvtcno)
 # Partibarometeret kan gjøres om til en dummy for FrP
-ess$frp <- recode(ess$prtvtcno, "1:7=0; 8=1; 9:11=0")
-fre(ess$frp)
+ess$frp <- recode(as.numeric(ess$prtvtcno), "1:7=0; 8=1; 9:11=0")
+freq(ess$frp)
 
 # Tabell for samlet husholdsinntekt i desiler
 freq(ess$hinctnta)
@@ -103,15 +108,15 @@ summ(modell1)
 summ(modell1, digits=3)
 
 # Multippel regresjon
-modell2 <- lm(wrclmch ~ eduyrs+kvinne+inntekt+agea+by, data=ess)
+modell2 <- lm(wrclmch ~ eduyrs+kvinne+inntekt+agea+bykommune, data=ess)
 summ(modell2, digits=3)
 
 # I modell1 er N=1330 og i modell2 er N=1251. Vi må derfor lage et datasett med lik N i begge modellene?
-utvalg <- subset(ess, select = c(wrclmch, eduyrs, kvinne, inntekt, agea, by))
+utvalg <- subset(ess, select = c(wrclmch, eduyrs, kvinne, inntekt, agea, bykommune))
 utvalg=na.omit(utvalg)
 modell1 <- lm(wrclmch ~ eduyrs, data=utvalg)
 summ(modell1, digits=3)
-modell2 <- lm(wrclmch ~ eduyrs+kvinne+inntekt+agea+by, data=utvalg)
+modell2 <- lm(wrclmch ~ eduyrs+kvinne+inntekt+agea+bykommune, data=utvalg)
 summ(modell2, digits=3)
 
 # Regresjonsmodeller med dummysett
@@ -132,7 +137,7 @@ summ(modell4, digits=5)
 effect_plot(modell4, pred = agea)
 
 # Regresjonsmodell med samspillseffekt
-# Omkoding av variablene homoaksept og storby
+# Omkoding av variablene homoaksept og bykommune
 freq(ess$freehms)
 ess$homoaksept <- recode(ess$freehms, "1=5; 2=4; 3=3; 4=2; 5=1")
 ess$storby <- recode(ess$domicil, "1:2=1; 3:5=0")
@@ -157,7 +162,7 @@ print(oddsratio1)
 effect_plot(modell_logistisk1, pred = eduyrs)
 
 # Multippel logistisk regresjonsmodell
-modell_logistisk2 <- glm(frp ~ eduyrs + kvinne + inntekt + agea + by, data = ess, family = binomial)
+modell_logistisk2 <- glm(frp ~ eduyrs + kvinne + inntekt + agea + storby, data = ess, family = binomial)
 summ(modell_logistisk2, digit=3)
 # Oddsratio
 oddsratio2 <- exp(coef(modell_logistisk2))
@@ -166,7 +171,7 @@ print(oddsratio2)
 effect_plot(modell_logistisk2, pred = eduyrs)
 
 # Estimerer den logistiske regresjonsmodellen med kurvelineær utddaningseffekt
-modell_logistisk3 <- glm(frp ~ eduyrs + I(eduyrs^2) + kvinne + inntekt + agea + by, data = ess, family = binomial)
+modell_logistisk3 <- glm(frp ~ eduyrs + I(eduyrs^2) + kvinne + inntekt + agea + storby, data = ess, family = binomial)
 summ(modell_logistisk3, digits=3)
 
 # Plotte den kurvelineære effekten av eduyrs på frp
